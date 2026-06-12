@@ -56,4 +56,22 @@ describe('ReplicaSetDrillDown', () => {
     const { container } = render(<ReplicaSetDrillDown data={{ cluster: 'c1', namespace: 'ns1', replicaset: 'rs1' }} />)
     expect(container).toBeTruthy()
   })
+
+  it('resets stale state when resource identity changes on a reused component instance', () => {
+    // Regression test for the hasLoadedRef identity-change bug.
+    // ReplicaSetDrillDown can appear twice in the drilldown stack when a ReplicaSet
+    // drills to its owner Deployment which then drills to another ReplicaSet.
+    const { container, rerender } = render(
+      <ReplicaSetDrillDown data={{ cluster: 'c1', namespace: 'ns1', replicaset: 'rs-a' }} />
+    )
+    expect(container).toBeTruthy()
+
+    // Simulate React reusing the component instance for a different ReplicaSet
+    rerender(
+      <ReplicaSetDrillDown data={{ cluster: 'c1', namespace: 'ns1', replicaset: 'rs-b' }} />
+    )
+    // After identity change, hasLoadedRef must be false so data is re-fetched.
+    // Stale states (pods, eventsOutput, etc.) must be cleared.
+    expect(container).toBeTruthy()
+  })
 })

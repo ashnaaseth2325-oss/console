@@ -226,6 +226,18 @@ export function ArgoAppDrillDown({ data }: Props) {
   // Track if we've already loaded data
   const hasLoadedRef = useRef(false)
 
+  // Reset fetch guard and all fetched state when the target resource changes.
+  const prevResourceKeyRef = useRef(`${cluster}:${namespace}:${appName}`)
+  useEffect(() => {
+    const key = `${cluster}:${namespace}:${appName}`
+    if (key === prevResourceKeyRef.current) return
+    prevResourceKeyRef.current = key
+    hasLoadedRef.current = false
+    setAppResources(null)
+    setSyncHistory(null)
+    setDiffOutput(null)
+  }, [cluster, namespace, appName])
+
   useEffect(() => {
     if (!agentConnected || hasLoadedRef.current) return
     hasLoadedRef.current = true

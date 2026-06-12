@@ -212,6 +212,17 @@ export function PolicyDrillDown({ data }: Props) {
   // Track if we've already loaded data
   const hasLoadedRef = useRef(false)
 
+  // Reset fetch guard and all fetched state when the target resource changes.
+  const prevResourceKeyRef = useRef(`${cluster}:${namespace ?? ''}:${policyName}`)
+  useEffect(() => {
+    const key = `${cluster}:${namespace ?? ''}:${policyName}`
+    if (key === prevResourceKeyRef.current) return
+    prevResourceKeyRef.current = key
+    hasLoadedRef.current = false
+    setViolations(null)
+    setPolicySpec(null)
+  }, [cluster, namespace, policyName])
+
   useEffect(() => {
     if (!agentConnected || hasLoadedRef.current) return
     hasLoadedRef.current = true

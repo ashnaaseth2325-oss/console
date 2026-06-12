@@ -233,6 +233,19 @@ export function CRDDrillDown({ data }: Props) {
   // Track if we've already loaded data
   const hasLoadedRef = useRef(false)
 
+  // Reset fetch guard and all fetched state when the target resource changes.
+  const prevResourceKeyRef = useRef(`${cluster}:${crdName}`)
+  useEffect(() => {
+    const key = `${cluster}:${crdName}`
+    if (key === prevResourceKeyRef.current) return
+    prevResourceKeyRef.current = key
+    hasLoadedRef.current = false
+    setVersions(null)
+    setInstances(null)
+    setConditions(null)
+    setSchema(null)
+  }, [cluster, crdName])
+
   useEffect(() => {
     if (!agentConnected || hasLoadedRef.current) return
     hasLoadedRef.current = true

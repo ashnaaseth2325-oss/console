@@ -103,6 +103,20 @@ export function SecretDrillDown({ data }: Props) {
   // Track if we've already loaded data to prevent refetching
   const hasLoadedRef = useRef(false)
 
+  // Reset fetch guard and all fetched state when the target resource changes.
+  const prevResourceKeyRef = useRef(`${cluster}:${namespace}:${secretName}`)
+  useEffect(() => {
+    const key = `${cluster}:${namespace}:${secretName}`
+    if (key === prevResourceKeyRef.current) return
+    prevResourceKeyRef.current = key
+    hasLoadedRef.current = false
+    setSecretData(null)
+    setSecretType(null)
+    setDescribeOutput(null)
+    setYamlOutput(null)
+    setLabels(null)
+  }, [cluster, namespace, secretName])
+
   // Pre-fetch tab data when agent connects
   // Batched to limit concurrent WebSocket connections (max 2 at a time)
   useEffect(() => {

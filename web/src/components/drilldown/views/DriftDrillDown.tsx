@@ -203,6 +203,17 @@ export function DriftDrillDown({ data }: Props) {
   // Track if we've already loaded data
   const hasLoadedRef = useRef(false)
 
+  // Reset fetch guard and all fetched state when the target resource changes.
+  const prevResourceKeyRef = useRef(`${cluster}:${namespace ?? ''}:${resourceName ?? ''}`)
+  useEffect(() => {
+    const key = `${cluster}:${namespace ?? ''}:${resourceName ?? ''}`
+    if (key === prevResourceKeyRef.current) return
+    prevResourceKeyRef.current = key
+    hasLoadedRef.current = false
+    setChanges(null)
+    setSelectedChange(null)
+  }, [cluster, namespace, resourceName])
+
   useEffect(() => {
     if (!agentConnected || hasLoadedRef.current) return
     hasLoadedRef.current = true

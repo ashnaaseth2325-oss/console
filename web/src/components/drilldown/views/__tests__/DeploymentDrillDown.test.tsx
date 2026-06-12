@@ -60,4 +60,24 @@ describe('DeploymentDrillDown', () => {
     const { container } = render(<DeploymentDrillDown data={{ cluster: 'c1', namespace: 'ns1', deployment: 'dep1', replicas: 1 }} />)
     expect(container).toBeTruthy()
   })
+
+  it('resets stale state when resource identity changes on a reused component instance', () => {
+    // This is a regression test for the hasLoadedRef identity-change bug:
+    // when React reuses the same component instance for a different resource
+    // (e.g., two Deployments in the breadcrumb stack), the previous resource's
+    // state must be cleared so the component re-fetches for the new resource.
+    const { container, rerender } = render(
+      <DeploymentDrillDown data={{ cluster: 'c1', namespace: 'ns1', deployment: 'dep1', replicas: 5 }} />
+    )
+    // dep1 renders with 5 replicas from useState initializer (no fetch, agent disconnected)
+    expect(container.textContent).toContain('0/5')
+
+    // Simulate React reusing the component instance for dep2 (no key on parent)
+    rerender(
+      <DeploymentDrillDown data={{ cluster: 'c1', namespace: 'ns1', deployment: 'dep2', replicas: 3 }} />
+    )
+    // Our fix resets replicas to 0 when deployment name changes — dep1's "5" must not appear
+    expect(container.textContent).not.toContain('0/5')
+    expect(container.textContent).toContain('0/0')
+  })
 })

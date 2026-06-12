@@ -145,6 +145,16 @@ export function AlertDrillDown({ data }: Props) {
   // Track if we've already loaded data
   const hasLoadedRef = useRef(false)
 
+  // Reset fetch guard and all fetched state when the target resource changes.
+  const prevResourceKeyRef = useRef(`${cluster}:${namespace ?? ''}:${alertName}`)
+  useEffect(() => {
+    const key = `${cluster}:${namespace ?? ''}:${alertName}`
+    if (key === prevResourceKeyRef.current) return
+    prevResourceKeyRef.current = key
+    hasLoadedRef.current = false
+    setSourceRule(null)
+  }, [cluster, namespace, alertName])
+
   useEffect(() => {
     if (!agentConnected || hasLoadedRef.current) return
     hasLoadedRef.current = true

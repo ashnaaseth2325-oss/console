@@ -235,6 +235,19 @@ export function HelmReleaseDrillDown({ data }: Props) {
   // Track if we've already loaded data
   const hasLoadedRef = useRef(false)
 
+  // Reset fetch guard and all fetched state when the target resource changes.
+  const prevResourceKeyRef = useRef(`${cluster}:${namespace}:${releaseName}`)
+  useEffect(() => {
+    const key = `${cluster}:${namespace}:${releaseName}`
+    if (key === prevResourceKeyRef.current) return
+    prevResourceKeyRef.current = key
+    hasLoadedRef.current = false
+    setReleaseInfo(null)
+    setReleaseValues(null)
+    setReleaseHistory(null)
+    setReleaseResources(null)
+  }, [cluster, namespace, releaseName])
+
   useEffect(() => {
     if (!agentConnected || hasLoadedRef.current) return
     hasLoadedRef.current = true

@@ -125,6 +125,19 @@ export function BuildpackDrillDown({ data }: Props) {
 
   const hasLoadedRef = useRef(false)
 
+  // Reset fetch guard and all fetched state when the target resource changes.
+  const prevResourceKeyRef = useRef(`${cluster}:${namespace}:${name}`)
+  useEffect(() => {
+    const key = `${cluster}:${namespace}:${name}`
+    if (key === prevResourceKeyRef.current) return
+    prevResourceKeyRef.current = key
+    hasLoadedRef.current = false
+    setImageInfo(null)
+    setImageYAML(null)
+    setBuilds([])
+    setLogs(null)
+  }, [cluster, namespace, name])
+
   const resourceContext: ResourceContext = {
     kind: 'BuildpackImage',
     name,

@@ -115,6 +115,25 @@ export function PodDrillDown({ data }: { data: Record<string, unknown> }) {
   // Track if we should auto-refresh due to rapid reopen
   const shouldAutoRefreshRef = useRef(false)
 
+  // Reset fetch guard and all fetched state when the target resource changes.
+  // Sets shouldAutoRefreshRef so the load effect force-re-fetches useAsyncData outputs.
+  const prevResourceKeyRef = useRef(`${cluster}:${namespace}:${podName}`)
+  useEffect(() => {
+    const key = `${cluster}:${namespace}:${podName}`
+    if (key === prevResourceKeyRef.current) return
+    prevResourceKeyRef.current = key
+    hasLoadedRef.current = false
+    shouldAutoRefreshRef.current = true
+    setRelatedResources([])
+    setOwnerChain([])
+    setConfigMaps([])
+    setSecrets([])
+    setPvcs([])
+    setServiceAccount(null)
+    setLabels(null)
+    setAnnotations(null)
+  }, [cluster, namespace, podName])
+
   // Check if this is a rapid reopen (user looking for updated data)
   const now = Date.now()
   if (persistentCache && now - persistentCache.lastOpened < RAPID_REOPEN_THRESHOLD_MS) {

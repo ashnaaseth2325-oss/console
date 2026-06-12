@@ -109,6 +109,23 @@ export function ReplicaSetDrillDown({ data }: Props) {
   // Track if we've already loaded data to prevent refetching
   const hasLoadedRef = useRef(false)
 
+  // Reset fetch guard and all fetched state when the target resource changes.
+  const prevResourceKeyRef = useRef(`${cluster}:${namespace}:${replicasetName}`)
+  useEffect(() => {
+    const key = `${cluster}:${namespace}:${replicasetName}`
+    if (key === prevResourceKeyRef.current) return
+    prevResourceKeyRef.current = key
+    hasLoadedRef.current = false
+    setReplicas(0)
+    setReadyReplicas(0)
+    setPods([])
+    setOwnerDeployment(null)
+    setLabels(null)
+    setEventsOutput(null)
+    setDescribeOutput(null)
+    setYamlOutput(null)
+  }, [cluster, namespace, replicasetName])
+
   // Pre-fetch tab data when agent connects
   // Batched to limit concurrent WebSocket connections (max 2 at a time)
   useEffect(() => {

@@ -166,6 +166,19 @@ export function RBACDrillDown({ data }: Props) {
 
   const hasLoadedRef = useRef(false)
 
+  // Reset fetch guard and all fetched state when the target resource changes.
+  const prevResourceKeyRef = useRef(`${cluster}:${namespace ?? ''}:${subject}`)
+  useEffect(() => {
+    const key = `${cluster}:${namespace ?? ''}:${subject}`
+    if (key === prevResourceKeyRef.current) return
+    prevResourceKeyRef.current = key
+    hasLoadedRef.current = false
+    setClusterBindings([])
+    setRoleBindings([])
+    setDescribeOutput(null)
+    setYamlOutput(null)
+  }, [cluster, namespace, subject])
+
   // Track agent connection state so a disconnect → reconnect also triggers a
   // fresh fetch (Issue 9267). Without this the drilldown stayed blank after
   // the agent dropped and returned.

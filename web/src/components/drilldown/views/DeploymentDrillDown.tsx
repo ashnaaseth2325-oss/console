@@ -382,6 +382,29 @@ export function DeploymentDrillDown({ data }: Props) {
   // Track if we've already loaded data to prevent refetching
   const hasLoadedRef = useRef(false)
 
+  // Reset fetch guard and all fetched state when the target resource changes.
+  // Handles React reusing the component instance for a different resource when
+  // the same view type appears multiple times in the drilldown breadcrumb stack.
+  const prevResourceKeyRef = useRef(`${cluster}:${namespace}:${deploymentName}`)
+  useEffect(() => {
+    const key = `${cluster}:${namespace}:${deploymentName}`
+    if (key === prevResourceKeyRef.current) return
+    prevResourceKeyRef.current = key
+    hasLoadedRef.current = false
+    setPods([])
+    setReplicaSets([])
+    setLabels(null)
+    setEventsOutput(null)
+    setDescribeOutput(null)
+    setYamlOutput(null)
+    setScaleError(null)
+    setCanScale(null)
+    setReplicas(0)
+    setReadyReplicas(0)
+    setLiveReason(undefined)
+    setLiveMessage(undefined)
+  }, [cluster, namespace, deploymentName])
+
   // Pre-fetch tab data when agent connects
   // Batched to limit concurrent WebSocket connections (max 2 at a time)
   useEffect(() => {

@@ -73,6 +73,21 @@ export function ServiceAccountDrillDown({ data }: Props) {
   // Track if we've already loaded data to prevent refetching
   const hasLoadedRef = useRef(false)
 
+  // Reset fetch guard and all fetched state when the target resource changes.
+  const prevResourceKeyRef = useRef(`${cluster}:${namespace}:${serviceaccountName}`)
+  useEffect(() => {
+    const key = `${cluster}:${namespace}:${serviceaccountName}`
+    if (key === prevResourceKeyRef.current) return
+    prevResourceKeyRef.current = key
+    hasLoadedRef.current = false
+    setSecrets([])
+    setImagePullSecrets([])
+    setLabels(null)
+    setAnnotations(null)
+    setDescribeOutput(null)
+    setYamlOutput(null)
+  }, [cluster, namespace, serviceaccountName])
+
   // Pre-fetch tab data when agent connects
   // Batched to limit concurrent WebSocket connections (max 2 at a time)
   useEffect(() => {
